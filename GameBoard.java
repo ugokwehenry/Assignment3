@@ -1,7 +1,10 @@
 import java.io.IOException;
 import java.util.*;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
+
+import javax.security.auth.Subject;
 
 // This is the Singleton that implements the game, it glues all the patterns together.
 public class GameBoard
@@ -13,6 +16,7 @@ public class GameBoard
 	private final IAsteroidGameFactory factory;
 	private int buildingCount;
 	private IState gameState;
+	private AsteroidSubject subject;
 	
 	// The one way to get the Singleton
 	public static GameBoard Instance()
@@ -34,6 +38,7 @@ public class GameBoard
 		factory = new AsteroidGameFactory();
 		buildingCount = 0;
 		gameState = new SetupState();
+		subject = new AsteroidSubject();
 	}
 	
 	public ArrayList<ArrayList<BoardComponent>> GetBoard()
@@ -51,6 +56,11 @@ public class GameBoard
 		return factory;
 	}
 	
+	
+	public  AsteroidSubject GetSubject(){
+		return subject;
+	}
+	
 	// This processses the input command file, using the factory to make
 	// commands, and then executes the commands the factory makes.
 	// Notice how this code has NO IDEA what command is created, or what the
@@ -61,9 +71,8 @@ public class GameBoard
 	{
 		try
 		{
-			Charset charset = Charset.forName("ISO-8859-1");
 			//List<String> commandLines = Files.readAllLines(Paths.get(commandFileName));
-			List<String> commandLines = Files.readAllLines(Paths.get(commandFileName), charset);
+			List<String> commandLines = Files.readAllLines(Paths.get(this.getClass().getResource(commandFileName).toURI()), Charset.defaultCharset());
 			Iterator<String> iter = commandLines.iterator();
 			while (iter.hasNext())
 			{
@@ -85,6 +94,9 @@ public class GameBoard
 		catch (IOException e)
 		{
 			System.out.println("Failed to parse command file: " + e.getMessage());
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
